@@ -30,10 +30,41 @@ public:
     }
 };
 
+class IWriter
+{
+public:
+    virtual ~IWriter() {}
+    virtual void write(const string& text) = 0;
+};
+
+class FileWriter : public IWriter
+{
+private:
+    string filePath;
+public:
+    FileWriter(string filePath) : filePath(filePath) {}
+    void write(const string& text)
+    {
+        ifstream file(filePath);
+        if (file)
+        {
+            cout << "File already exists" << endl;
+            return;
+        }
+        ofstream outFile(filePath);
+        outFile << text;
+    }
+};
+
 int main()
 {
     IReader* reader = new FileReader("test.txt");
     cout << reader->read() << endl;
     delete reader;
+
+    IWriter* writer = new FileWriter("test1234.txt");
+    writer->write("Asasdasd");
+    delete writer;
+
     return 0;
 }
