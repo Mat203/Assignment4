@@ -1,8 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <windows.h>
 
 using namespace std;
+
+typedef char* (__cdecl *encrypt)(char*, int);
+typedef char* (__cdecl *decrypt)(char*, int);
 
 class IReader
 {
@@ -58,13 +62,50 @@ public:
 
 int main()
 {
+    HINSTANCE handle = LoadLibrary(TEXT("library.dll"));
+    if (handle == nullptr || handle == INVALID_HANDLE_VALUE)
+    {
+        std::cout << "Lib not found" << std::endl;
+        return 1;
+    }
+
+    encrypt encrypt_ptr = (encrypt)GetProcAddress(handle, TEXT("encrypt"));
+    if (encrypt_ptr == nullptr)
+    {
+        std::cout << "Function not found" << std::endl;
+        return 1;
+    }
+
+    decrypt decrypt_ptr = (decrypt)GetProcAddress(handle, TEXT("decrypt"));
+    if (decrypt_ptr == nullptr)
+    {
+        std::cout << "Function not found" << std::endl;
+        return 1;
+    }
+
     IReader* reader = new FileReader("test.txt");
-    cout << reader->read() << endl;
+    string content = reader->read();
+    
+    if (!content.empty())
+    {
+        char* encryptedContent = (*encrypt_ptr)(const_cast<char*>(content.c_str()), 5);
+        cout << "Encrypted content: " << encryptedContent << endl;
+
+        char* decryptedContent = (*decrypt_ptr)(encryptedContent, 5);
+        cout << "Decrypted content: " << decryptedContent << endl;
+
+        delete[] encryptedContent;
+        delete[] decryptedContent;
+    }
+
     delete reader;
 
     IWriter* writer = new FileWriter("test1234.txt");
-    writer->write("Asasdasd");
+    writer->write("asdasd");
+    
     delete writer;
+
+    FreeLibrary(handle);
 
     return 0;
 }
