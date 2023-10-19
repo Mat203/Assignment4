@@ -5,8 +5,8 @@
 
 using namespace std;
 
-typedef char* (__cdecl *encrypt)(char*, int);
-typedef char* (__cdecl *decrypt)(char*, int);
+typedef char *(__cdecl *encrypt)(char *, int);
+typedef char *(__cdecl *decrypt)(char *, int);
 
 class IReader
 {
@@ -19,6 +19,7 @@ class FileReader : public IReader
 {
 private:
     string filePath;
+
 public:
     FileReader(string filePath) : filePath(filePath) {}
     string read()
@@ -38,16 +39,17 @@ class IWriter
 {
 public:
     virtual ~IWriter() {}
-    virtual void write(const string& text) = 0;
+    virtual void write(const string &text) = 0;
 };
 
 class FileWriter : public IWriter
 {
 private:
     string filePath;
+
 public:
     FileWriter(string filePath) : filePath(filePath) {}
-    void write(const string& text)
+    void write(const string &text)
     {
         ifstream file(filePath);
         if (file)
@@ -83,29 +85,62 @@ int main()
         return 1;
     }
 
-    IReader* reader = new FileReader("test.txt");
+    srand(time(0));
+
+    cout << "Choose mode (1 - Normal, 2 - Secret): ";
+    int mode;
+    cin >> mode;
+    cin.ignore();
+
+    cout << "Enter input file path: ";
+    string inputPath;
+    getline(cin, inputPath);
+
+    cout << "Enter output file path: ";
+    string outputPath;
+    getline(cin, outputPath);
+
+    string operation;
+    int key;
+
+    if (mode == 1)
+    {
+        cout << "Choose operation (encrypt or decrypt): ";
+        getline(cin, operation);
+
+        cout << "Enter the key: ";
+        cin >> key;
+        cin.ignore();
+    }
+    else
+    {
+        operation = "encrypt";
+        key = rand();
+        cout << "Generated key: " << key << endl;
+    }
+
+    IReader *reader = new FileReader(inputPath);
     string content = reader->read();
-    
+
     if (!content.empty())
     {
-        char* encryptedContent = (*encrypt_ptr)(const_cast<char*>(content.c_str()), 5);
-        cout << "Encrypted content: " << encryptedContent << endl;
+        char *processedContent;
 
-        char* decryptedContent = (*decrypt_ptr)(encryptedContent, 5);
-        cout << "Decrypted content: " << decryptedContent << endl;
+        key = key % 128;
 
-        delete[] encryptedContent;
-        delete[] decryptedContent;
+        if (operation == "encrypt")
+            processedContent = (*encrypt_ptr)(const_cast<char *>(content.c_str()), key);
+        else
+            processedContent = (*decrypt_ptr)(const_cast<char *>(content.c_str()), key);
+
+        IWriter *writer = new FileWriter(outputPath);
+        writer->write(processedContent);
+
+        delete[] processedContent;
+        delete writer;
     }
 
     delete reader;
-
-    IWriter* writer = new FileWriter("test1234.txt");
-    writer->write("asdasd");
-    
-    delete writer;
-
-    FreeLibrary(handle);
 
     return 0;
 }
