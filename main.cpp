@@ -26,15 +26,24 @@ private:
 
 public:
     FileReader(string filePath) : filePath(filePath) {}
+
     string read()
     {
-        ifstream file(filePath);
+        ifstream file(filePath, ios::binary);
         if (!file)
         {
             cout << "File does not exist" << endl;
             return "";
         }
-        string content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+
+        string content;
+        char buffer[128];
+        while (file.read(buffer, sizeof(buffer)))
+        {
+            content.append(buffer, sizeof(buffer));
+        }
+        content.append(buffer, file.gcount());
+
         return content;
     }
 };
@@ -50,12 +59,12 @@ class FileWriter : public IWriter
 {
 private:
     string filePath;
-    ofstream outFile;
+    ofstream file;
 
 public:
-    FileWriter(string filePath) : filePath(filePath), outFile(filePath)
+    FileWriter(string filePath) : filePath(filePath), file(filePath, ios::binary)
     {
-        if (!outFile)
+        if (!file)
         {
             cout << "File can't be opened" << endl;
         }
@@ -63,17 +72,30 @@ public:
 
     ~FileWriter()
     {
-        if (outFile.is_open())
+        if (file)
         {
-            outFile.close();
+            file.close();
         }
     }
 
     void write(const string &text)
     {
-        outFile << text;
+        if (!file)
+        {
+            return;
+        }
+
+        size_t pos = 0;
+        while (pos < text.size())
+        {
+            size_t length = min(text.size() - pos, size_t(128));
+            file.write(text.data() + pos, length);
+            pos += length;
+        }
     }
 };
+
+
 
 class CaesarCipher
 {
