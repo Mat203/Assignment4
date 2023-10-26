@@ -95,8 +95,6 @@ public:
     }
 };
 
-
-
 class CaesarCipher
 {
 private:
@@ -626,49 +624,12 @@ public:
     {
         CaesarCipher cipher("library.dll");
 
-        cout << "Choose operation (1 - Encrypt file, 2 - Decrypt file, 3 - Encrypt LinkedList, 4 - Decrypt LinkedList): ";
+        cout << "Choose operation (1 - Encrypt LinkedList, 2 - Decrypt LinkedList): ";
         int operation;
         cin >> operation;
         cin.ignore();
 
         if (operation == 1 || operation == 2)
-        {
-            cout << "Enter input file path: ";
-            string inputPath;
-            getline(cin, inputPath);
-
-            cout << "Enter output file path: ";
-            string outputPath;
-            getline(cin, outputPath);
-
-            cout << "Enter the key: ";
-            int key;
-            cin >> key;
-            cin.ignore();
-
-            IReader *reader = new FileReader(inputPath);
-            string content = reader->read();
-
-            if (!content.empty())
-            {
-                string processedContent;
-
-                key = key % 128;
-
-                if (operation == 1)
-                    processedContent = cipher.encryptString(content, key);
-                else
-                    processedContent = cipher.decryptString(content, key);
-
-                IWriter *writer = new FileWriter(outputPath);
-                writer->write(processedContent);
-
-                delete writer;
-            }
-
-            delete reader;
-        }
-        else if (operation == 3 || operation == 4)
         {
             cout << "Enter the key: ";
             int key;
@@ -678,7 +639,7 @@ public:
             Node *current = head;
             while (current != NULL)
             {
-                if (operation == 3)
+                if (operation == 1)
                     current->value = cipher.encryptString(current->value, key);
                 else
                     current->value = cipher.decryptString(current->value, key);
