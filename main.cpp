@@ -599,6 +599,72 @@ public:
             current->value = action.text;
         }
     }
+
+    void cipherOperations()
+    {
+        CaesarCipher cipher("library.dll");
+
+        cout << "Choose operation (1 - Encrypt file, 2 - Decrypt file, 3 - Encrypt LinkedList, 4 - Decrypt LinkedList): ";
+        int operation;
+        cin >> operation;
+        cin.ignore();
+
+        if (operation == 1 || operation == 2)
+        {
+            cout << "Enter input file path: ";
+            string inputPath;
+            getline(cin, inputPath);
+
+            cout << "Enter output file path: ";
+            string outputPath;
+            getline(cin, outputPath);
+
+            cout << "Enter the key: ";
+            int key;
+            cin >> key;
+            cin.ignore();
+
+            IReader *reader = new FileReader(inputPath);
+            string content = reader->read();
+
+            if (!content.empty())
+            {
+                string processedContent;
+
+                key = key % 128;
+
+                if (operation == 1)
+                    processedContent = cipher.encryptString(content, key);
+                else
+                    processedContent = cipher.decryptString(content, key);
+
+                IWriter *writer = new FileWriter(outputPath);
+                writer->write(processedContent);
+
+                delete writer;
+            }
+
+            delete reader;
+        }
+        else if (operation == 3 || operation == 4)
+        {
+            cout << "Enter the key: ";
+            int key;
+            cin >> key;
+            cin.ignore();
+
+            Node *current = head;
+            while (current != NULL)
+            {
+                if (operation == 3)
+                    current->value = cipher.encryptString(current->value, key);
+                else
+                    current->value = cipher.decryptString(current->value, key);
+
+                current = current->next;
+            }
+        }
+    }
 };
 
 int main()
@@ -619,6 +685,7 @@ int main()
     printf("13 - Copy symbols\n");
     printf("14 - Insert with replacement\n");
     printf("15 - Move the cursor\n");
+    printf("16 - Cipher operations\n");
 
     LinkedList list;
 
@@ -751,71 +818,14 @@ int main()
 
         if (command == 16)
         {
+            list.cipherOperations();
+        }
+
+        if (command == 17)
+        {
             printf("Cursor line % d, index% d\n", list.cursor.line, list.cursor.index);
         }
     }
 
     return 0;
 }
-
-/*int main()
-{
-    CaesarCipher cipher("library.dll");
-
-    srand(time(0));
-
-    cout << "Choose mode (1 - Normal, 2 - Secret): ";
-    int mode;
-    cin >> mode;
-    cin.ignore();
-    cout << "Enter input file path: ";
-    string inputPath;
-    getline(cin, inputPath);
-    cout << "Enter output file path: ";
-    string outputPath;
-    getline(cin, outputPath);
-    string operation;
-    int key;
-
-    if (mode == 1)
-    {
-        cout << "Choose operation (encrypt or decrypt): ";
-        getline(cin, operation);
-        cout << "Enter the key: ";
-        cin >> key;
-        cin.ignore();
-    }
-    else
-    {
-        operation = "encrypt";
-        key = rand();
-        cout << "Generated key: " << key << endl;
-    }
-
-    IReader *reader = new FileReader(inputPath);
-
-    string content = reader->read();
-
-    if (!content.empty())
-    {
-        string processedContent;
-
-        key = key % 128;
-
-        if (operation == "encrypt")
-            processedContent = cipher.encryptString(content, key);
-        else
-            processedContent = cipher.decryptString(content, key);
-
-        IWriter *writer = new FileWriter(outputPath);
-
-        writer->write(processedContent);
-
-        delete writer;
-    }
-
-    delete reader;
-
-    return 0;
-}
-*/
